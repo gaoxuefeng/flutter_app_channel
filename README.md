@@ -1,4 +1,4 @@
-# flutter_app_channel
+# Android多渠道可视化打包工具(macos平台)
 
  flutter_app_channel是基于美团分包工具瓦力来开发的android apk 渠道分包工具,运行需要依赖java环境,目前只支持在苹果电脑macos上运行
  需要在android项目中引用[瓦力walle](https://github.com/Meituan-Dianping/walle) 来获取添加的渠道
