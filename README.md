@@ -14,4 +14,4 @@ it requires java environment
 channel file simple [渠道文件样例channe file demo](https://github.com/Meituan-Dianping/walle/blob/master/app/channel)
 apks output file will open after add channel
 
-![Image text](https://github.com/gaoxuefeng/flutter_app_channel/tree/master/images/image1.jpg)
+![Image text](./images/image1.jpg)
