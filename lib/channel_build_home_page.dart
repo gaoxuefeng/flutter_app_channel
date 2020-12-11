@@ -1,13 +1,15 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_app_channel/check_apk_channel_page.dart';
 import 'package:flutter_app_channel/loading_custom.dart';
 import 'package:flutter_app_channel/r.dart';
+import 'package:flutter_app_channel/route/animation_route.dart';
+import 'package:flutter_app_channel/safe_iterable.dart';
+import 'package:flutter_app_channel/utils/CmdUtil.dart';
+import 'package:flutter_app_channel/utils/file_util.dart';
 import 'package:intl/intl.dart';
-import 'package:process_runner/process_runner.dart';
 
 /**
  * Created by Gao Xuefeng
@@ -30,7 +32,6 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
   bool isRunning = false;
   String log = "";
   ScrollController _scrollController;
-  ProcessRunner processRunner;
   int channelBuildType = 0;
   List<String> typeList = ["Walle&VasDolly", "Walle", "VasDolly"];
 
@@ -39,7 +40,6 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     super.initState();
     log = "正在初始化";
     _scrollController = ScrollController();
-    processRunner = ProcessRunner();
     appendLog("初始化完成");
   }
 
@@ -54,25 +54,42 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DropdownButton(
-                      value: channelBuildType,
-                      onChanged: (value) {
-                        setState(() {
-                          channelBuildType = value;
-                        });
-                      },
-                      items: [
-                        DropdownMenuItem(
-                          value: 0,
-                          child: Text(typeList?.elementAt(0)),
+                    Stack(
+                      children: [
+                        DropdownButton(
+                          value: channelBuildType,
+                          onChanged: (value) {
+                            setState(() {
+                              channelBuildType = value;
+                            });
+                          },
+                          items: [
+                            DropdownMenuItem(
+                              value: 0,
+                              child: Text(typeList?.elementAt(0)),
+                            ),
+                            DropdownMenuItem(
+                              value: 1,
+                              child: Text(typeList?.elementAt(1)),
+                            ),
+                            DropdownMenuItem(
+                              value: 2,
+                              child: Text(typeList?.elementAt(2)),
+                            )
+                          ],
                         ),
-                        DropdownMenuItem(
-                          value: 1,
-                          child: Text(typeList?.elementAt(1)),
-                        ),
-                        DropdownMenuItem(
-                          value: 2,
-                          child: Text(typeList?.elementAt(2)),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTapDown: (_) {
+                              Navigator.of(context)
+                                  .push(AnimationRoute(CheckApkChannelPage()));
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(8),
+                              child: Text("查看APK渠道"),
+                            ),
+                          ),
                         )
                       ],
                     ),
@@ -171,72 +188,83 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                       ],
                     ),
                     Expanded(
-                      child: CustomScrollView(
-                        controller: _scrollController,
-                        reverse: true,
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Text(log ?? ""),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomScrollView(
+                              controller: _scrollController,
+                              reverse: true,
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: Text(log ?? ""),
+                                )
+                              ],
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Visibility(
+                                  visible: (log?.length ?? 0) > 0,
+                                  child: GestureDetector(
+                                    onTapDown: (a) {
+                                      log = "";
+                                      setState(() {});
+                                    },
+                                    child: Container(
+                                      width: 100,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                          color: Colors.deepPurpleAccent,
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      padding: EdgeInsets.all(10),
+                                      child: Center(
+                                        child: Text(
+                                          "清除log",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTapDown: (_) async {
+                                    appendLog("开始打渠道包");
+                                    await LoadingCustom.show(context);
+                                    await clickAddChannel()
+                                        .catchError((onError) async {
+                                      appendLog(onError.toString());
+                                      await LoadingCustom.hide();
+                                    });
+                                    await LoadingCustom.hide();
+                                  },
+                                  child: Container(
+                                    margin: EdgeInsets.all(20),
+                                    width: 100,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child: Center(
+                                        child: Text(
+                                      isRunning ? "正在执行" : "开始执行",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 20),
+                                    )),
+                                  ),
+                                ),
+                              ],
+                            ),
                           )
                         ],
                       ),
                     )
                   ],
                 ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Visibility(
-                        visible: (log?.length ?? 0) > 0,
-                        child: GestureDetector(
-                          onTapDown: (a) {
-                            log = "";
-                            setState(() {});
-                          },
-                          child: Container(
-                            width: 100,
-                            height: 60,
-                            decoration: BoxDecoration(
-                                color: Colors.deepPurpleAccent,
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: EdgeInsets.all(10),
-                            child: Center(
-                              child: Text(
-                                "清除log",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTapDown: (_) async {
-                          appendLog("开始打渠道包");
-                          await LoadingCustom.show(context);
-                          await clickAddChannel().catchError((onError) async {
-                            await LoadingCustom.hide();
-                          });
-                          await LoadingCustom.hide();
-                        },
-                        child: Container(
-                          margin: EdgeInsets.all(20),
-                          width: 100,
-                          height: 60,
-                          decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Center(
-                              child: Text(
-                            isRunning ? "正在执行" : "开始执行",
-                            style: TextStyle(color: Colors.white, fontSize: 20),
-                          )),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
               ],
             )));
   }
@@ -266,39 +294,6 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
       channelList = channelFile?.toString()?.split("\n");
     }
     setState(() {});
-  }
-
-  Future runCmd2(String cmd,
-      {List<String> args, bool isCreateNew = false}) async {
-    if (isCreateNew == true) {
-      processRunner = ProcessRunner();
-    }
-    appendLog("\n-------------------$cmd-${args?.toString() ?? ""}--");
-    print("\n-------------------$cmd-${args?.toString() ?? ""}--");
-    List<String> list = List();
-    list.add(cmd);
-    if ((args?.length ?? 0) > 0) {
-      list.addAll(args);
-    }
-    ProcessRunnerResult result = await processRunner
-        .runProcess(
-      list,
-      printOutput: true,
-    )
-        .catchError((onError) {
-      appendLog("错误日志:${onError?.toString() ?? ""}");
-      print(onError?.toString() ?? "");
-      throw onError;
-    });
-    print('stdout: ${result?.stdout ?? ""}');
-    print('stderr: ${result?.stderr ?? ""}');
-    print('result: ${result?.output ?? ""}');
-    appendLog(result?.output ?? "");
-    print("执行结束");
-    setState(() {
-      _scrollController?.animateTo(0.0,
-          duration: Duration(seconds: 1), curve: Curves.easeOut);
-    });
   }
 
   appendLog(String appendLog) {
@@ -343,10 +338,10 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     for (String element in channelList) {
       index++;
       List<String> channelItemInfo = element.split("#");
-      String channelName = (channelItemInfo?.elementAt(0) ?? "").trim();
+      String channelName = (channelItemInfo?.safeElementAt(0) ?? "").trim();
       if (channelName.isNotEmpty) {
         String outPutName =
-            (channelItemInfo?.elementAt(1) ?? channelName).trim();
+            (channelItemInfo?.safeElementAt(1) ?? channelName).trim();
         if (outPutName.isEmpty) {
           outPutName = channelName;
         }
@@ -359,9 +354,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
         } else if (channelBuildType == 1) {
           await signWalle(channelName, outPutPath);
         } else if (channelBuildType == 2) {
-          // oriApkPath.exportToStorage();
-          File oriFile = new File(oriApkPath.path);
-          File(outPutPath).writeAsBytesSync(oriFile.readAsBytesSync());
+          await FileUtil.copyFile(oriApkPath.path, outPutPath);
           await signVasDolly(channelName, outPutPath);
         }
       }
@@ -369,32 +362,32 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
 
     appendLog("打包已完成");
     appendLog("APK输出路径为:$outApkPath");
-    runCmd2("open", args: ["$outApkPath"]);
+    await runCmd("open", args: ["$outApkPath"]);
     isRunning = false;
   }
 
   Future signVasDolly(String channelName, String outPutPath) async {
-    File tempFile = File(outPutPath + "_");
-    String tempOutPath = tempFile.path;
-    File(outPutPath).rename(tempOutPath);
-
-    File saveJarVasDolly = await copyAssetJarFile(R.jar_vasdolly_jar);
-    await runCmd2("java", args: [
+    File saveJarVasDolly = await FileUtil.copyAssetJarFile(
+        R.jar_vasdolly_jar, File(channelFile.path).parent.path);
+    await runCmd("java", args: [
       "-jar",
       "${saveJarVasDolly.path}",
       "put",
       "-c",
       "$channelName",
-      "$tempOutPath",
-      tempOutPath
-    ]);
-    tempFile.rename(outPutPath);
+      outPutPath,
+      outPutPath
+    ]).catchError((onError) {
+      File(outPutPath).deleteSync();
+    });
   }
 
   Future signWalle(String channelName, String outPutPath) async {
-    File saveJarWalle = await copyAssetJarFile(R.jar_walle_cli_all_jar);
+    File saveJarWalle = await FileUtil.copyAssetJarFile(
+        R.jar_walle_cli_all_jar, File(channelFile.path).parent.path);
+    // File saveJarWalle = await copyAssetJarFile(R.jar_walle_cli_all_jar);
 
-    await runCmd2("java", args: [
+    await runCmd("java", args: [
       "-jar",
       "${saveJarWalle.path}",
       "put",
@@ -405,23 +398,19 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     ]);
   }
 
-  Future<File> copyAssetJarFile(String jarAssetFile) async {
-    ByteData data = await rootBundle.load(jarAssetFile);
-    final buffer = data.buffer;
-    File saveFile =
-        File(File(channelFile.path).parent.path + "/${jarAssetFile}");
-    if (!await saveFile.exists()) {
-      await runCmd2("mkdir", args: ["-p", saveFile.parent.path]);
-      await runCmd2("touch", args: [saveFile.path]);
-      await saveFile.writeAsBytes(
-          buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-    }
-    return saveFile;
-  }
-
   @override
   void reassemble() {
     super.reassemble();
     appendLog("页面热重载");
+  }
+
+  Future<String> runCmd(String s, {List<String> args}) async {
+    await Cmdutil.runCmd(s, args: args, appendLog: (addLog) {
+      appendLog(addLog);
+    });
+    setState(() {
+      _scrollController?.animateTo(0.0,
+          duration: Duration(seconds: 1), curve: Curves.easeOut);
+    });
   }
 }
