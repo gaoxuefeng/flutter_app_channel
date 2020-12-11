@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,8 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
   String log = "";
   ScrollController _scrollController;
   ProcessRunner processRunner;
+  int channelBuildType = 0;
+  List<String> typeList = ["Walle&VasDolly", "Walle", "VasDolly"];
 
   @override
   void initState() {
@@ -49,25 +52,36 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
               children: [
                 Column(
                   mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    DropdownButton(
+                      value: channelBuildType,
+                      onChanged: (value) {
+                        setState(() {
+                          channelBuildType = value;
+                        });
+                      },
+                      items: [
+                        DropdownMenuItem(
+                          value: 0,
+                          child: Text(typeList?.elementAt(0)),
+                        ),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text(typeList?.elementAt(1)),
+                        ),
+                        DropdownMenuItem(
+                          value: 2,
+                          child: Text(typeList?.elementAt(2)),
+                        )
+                      ],
+                    ),
                     Row(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 5, horizontal: 10),
-                          child: Text(
-                            "当前打包方式:walle",
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
                         GestureDetector(
-                          onTapDown: (_) {},
                           child: Container(
                             child: Text(
-                              "切换到VasDolly",
+                              "当前打包方式:${typeList?.elementAt(channelBuildType)}",
                               style:
                                   TextStyle(color: Colors.white, fontSize: 20),
                             ),
@@ -79,13 +93,6 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                           ),
                         )
                       ],
-                    ),
-                    Text(
-                      "walle",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
                     ),
                     Row(
                       children: [
@@ -208,7 +215,9 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                         onTapDown: (_) async {
                           appendLog("开始打渠道包");
                           await LoadingCustom.show(context);
-                          await clickAddChannel();
+                          await clickAddChannel().catchError((onError) async {
+                            await LoadingCustom.hide();
+                          });
                           await LoadingCustom.hide();
                         },
                         child: Container(
@@ -254,7 +263,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     });
     if (myFile != null) {
       channelFile = myFile;
-      channelList = channelFile?.toString()?.split("/n");
+      channelList = channelFile?.toString()?.split("\n");
     }
     setState(() {});
   }
@@ -278,8 +287,8 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     )
         .catchError((onError) {
       appendLog("错误日志:${onError?.toString() ?? ""}");
-
       print(onError?.toString() ?? "");
+      throw onError;
     });
     print('stdout: ${result?.stdout ?? ""}');
     print('stderr: ${result?.stderr ?? ""}');
@@ -305,6 +314,8 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
   }
 
   Future clickAddChannel() async {
+    appendLog("开始打包...");
+
     if (isRunning) {
       appendLog("正在打包中,请稍后");
 
@@ -315,7 +326,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
       appendLog("APK原始文件不存在");
       return;
     }
-    if (channelFile == null) {
+    if (channelFile == null || (channelList?.length ?? 0) == 0) {
       appendLog("请选择渠道文件");
       return;
     }
@@ -323,34 +334,89 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
       isRunning = true;
     });
     String packageName =
-        "渠道包${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
+        "渠道包${(channelBuildType == 0) ? "Walle" : "VasDolly"}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
 
     appendLog("当前时间${packageName}");
-    ByteData data = await rootBundle.load(R.jar_walle_cli_all_jar);
+    String outApkPath =
+        "${File(oriApkPath.path).parent.path + "/$packageName/"}";
+    int index = 0;
+    for (String element in channelList) {
+      index++;
+      List<String> channelItemInfo = element.split("#");
+      String channelName = (channelItemInfo?.elementAt(0) ?? "").trim();
+      if (channelName.isNotEmpty) {
+        String outPutName =
+            (channelItemInfo?.elementAt(1) ?? channelName).trim();
+        if (outPutName.isEmpty) {
+          outPutName = channelName;
+        }
+        String outPutPath = outApkPath +
+            oriApkPath.fileName.substring(0, oriApkPath.fileName.length - 4);
+        outPutPath += "_${index}_$outPutName.apk";
+        if (channelBuildType == 0) {
+          await signWalle(channelName, outPutPath);
+          await signVasDolly(channelName, outPutPath);
+        } else if (channelBuildType == 1) {
+          await signWalle(channelName, outPutPath);
+        } else if (channelBuildType == 2) {
+          // oriApkPath.exportToStorage();
+          File oriFile = new File(oriApkPath.path);
+          File(outPutPath).writeAsBytesSync(oriFile.readAsBytesSync());
+          await signVasDolly(channelName, outPutPath);
+        }
+      }
+    }
+
+    appendLog("打包已完成");
+    appendLog("APK输出路径为:$outApkPath");
+    runCmd2("open", args: ["$outApkPath"]);
+    isRunning = false;
+  }
+
+  Future signVasDolly(String channelName, String outPutPath) async {
+    File tempFile = File(outPutPath + "_");
+    String tempOutPath = tempFile.path;
+    File(outPutPath).rename(tempOutPath);
+
+    File saveJarVasDolly = await copyAssetJarFile(R.jar_vasdolly_jar);
+    await runCmd2("java", args: [
+      "-jar",
+      "${saveJarVasDolly.path}",
+      "put",
+      "-c",
+      "$channelName",
+      "$tempOutPath",
+      tempOutPath
+    ]);
+    tempFile.rename(outPutPath);
+  }
+
+  Future signWalle(String channelName, String outPutPath) async {
+    File saveJarWalle = await copyAssetJarFile(R.jar_walle_cli_all_jar);
+
+    await runCmd2("java", args: [
+      "-jar",
+      "${saveJarWalle.path}",
+      "put",
+      "-c",
+      "$channelName",
+      "${oriApkPath.path}",
+      outPutPath
+    ]);
+  }
+
+  Future<File> copyAssetJarFile(String jarAssetFile) async {
+    ByteData data = await rootBundle.load(jarAssetFile);
     final buffer = data.buffer;
-    File saveFile = File(
-        File(channelFile.path).parent.path + "/${R.jar_walle_cli_all_jar}");
+    File saveFile =
+        File(File(channelFile.path).parent.path + "/${jarAssetFile}");
     if (!await saveFile.exists()) {
       await runCmd2("mkdir", args: ["-p", saveFile.parent.path]);
       await runCmd2("touch", args: [saveFile.path]);
       await saveFile.writeAsBytes(
           buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     }
-    String outApkPath =
-        "${File(oriApkPath.path).parent.path + "/${packageName}/"}";
-    await runCmd2("java", args: [
-      "-jar",
-      "${saveFile.path}",
-      "batch",
-      "-f",
-      "${channelFile.path}",
-      "${oriApkPath.path}",
-      outApkPath
-    ]);
-    appendLog("打包已完成");
-    appendLog("APK输出路径为:$outApkPath");
-    runCmd2("open", args: ["$outApkPath"]);
-    isRunning = false;
+    return saveFile;
   }
 
   @override
