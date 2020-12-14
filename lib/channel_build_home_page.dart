@@ -7,7 +7,7 @@ import 'package:flutter_app_channel/loading_custom.dart';
 import 'package:flutter_app_channel/r.dart';
 import 'package:flutter_app_channel/route/animation_route.dart';
 import 'package:flutter_app_channel/safe_iterable.dart';
-import 'package:flutter_app_channel/utils/CmdUtil.dart';
+import 'package:flutter_app_channel/utils/cmd_Util.dart';
 import 'package:flutter_app_channel/utils/file_util.dart';
 import 'package:intl/intl.dart';
 
@@ -86,8 +86,15 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                                   .push(AnimationRoute(CheckApkChannelPage()));
                             },
                             child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(5)),
                               padding: EdgeInsets.all(8),
-                              child: Text("查看APK渠道"),
+                              child: Text(
+                                "查看APK渠道",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
                             ),
                           ),
                         )
@@ -329,7 +336,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
       isRunning = true;
     });
     String packageName =
-        "渠道包${(channelBuildType == 0) ? "Walle" : "VasDolly"}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
+        "渠道包${typeList?.safeElementAt(channelBuildType)}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
 
     appendLog("当前时间${packageName}");
     String outApkPath =
@@ -405,7 +412,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
   }
 
   Future<String> runCmd(String s, {List<String> args}) async {
-    await Cmdutil.runCmd(s, args: args, appendLog: (addLog) {
+    await CmdUtil.runCmd(s, args: args, appendLog: (addLog) {
       appendLog(addLog);
     });
     setState(() {

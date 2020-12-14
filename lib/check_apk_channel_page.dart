@@ -4,7 +4,7 @@ import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_channel/loading_custom.dart';
 import 'package:flutter_app_channel/r.dart';
-import 'package:flutter_app_channel/utils/CmdUtil.dart';
+import 'package:flutter_app_channel/utils/cmd_Util.dart';
 import 'package:flutter_app_channel/utils/file_util.dart';
 
 /**
@@ -107,20 +107,30 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
       Directory apkRootFile = File(oriApkPath.path).parent;
       File walleFile = await FileUtil.copyAssetJarFile(
           R.jar_walle_cli_all_jar, apkRootFile.path);
-      File vasDollyFile = await FileUtil.copyAssetJarFile(
-          R.jar_walle_cli_all_jar, apkRootFile.path);
-      String result = await Cmdutil.runCmd("java",
+      File vasDollyFile =
+          await FileUtil.copyAssetJarFile(R.jar_vasdolly_jar, apkRootFile.path);
+      String result = await CmdUtil.runCmd("java",
               args: ["-jar", walleFile.path, "show", oriApkPath.path])
           .catchError((onError) {
         channelInfo = "\nWalle渠道:获取错误";
       });
-      channelInfo = "\nWalle渠道:${result ?? "null"}";
-      String result2 = await Cmdutil.runCmd("java",
+      if (result?.contains("{channel=") == true) {
+        channelInfo =
+            "\nWalle渠道:${result?.substring(result.lastIndexOf("{channel=")) ?? "未知"}";
+      } else {
+        channelInfo = "\nWalle渠道:未知";
+      }
+      String result2 = await CmdUtil.runCmd("java",
               args: ["-jar", vasDollyFile.path, "get", "-c", oriApkPath.path])
           .catchError((onError) {
-        channelInfo += "\nVadDolly渠道:获取错误}";
+        channelInfo += "\nVadDolly渠道:获取错误";
       });
-      channelInfo += "\nVadDolly渠道:$result2";
+      if (result2.contains("Channel:")) {
+        channelInfo +=
+            "\nVadDolly渠道:${result2.substring(result2.lastIndexOf("Channel:"))}";
+      } else {
+        channelInfo += "\nVadDolly渠道:未知";
+      }
     }
 
     setState(() {});

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_app_channel/utils/CmdUtil.dart';
+import 'package:flutter_app_channel/utils/cmd_Util.dart';
 
 /**
  * Created by Gao Xuefeng
@@ -26,8 +26,8 @@ class FileUtil {
     File file = File(path);
     if (!file.existsSync()) {
       if (!file.parent.existsSync()) {
-        await Cmdutil.runCmd("mkdir", args: ["-p", file.parent.path]);
-        await Cmdutil.runCmd("touch", args: [file.path]);
+        await CmdUtil.runCmd("mkdir", args: ["-p", file.parent.path]);
+        await CmdUtil.runCmd("touch", args: [file.path]);
       }
     }
     return file;

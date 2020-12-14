@@ -4,7 +4,7 @@ import 'package:process_runner/process_runner.dart';
  * Created by Gao Xuefeng
  * on 12/11/20
  */
-class Cmdutil {
+class CmdUtil {
   static ProcessRunner _processRunner = ProcessRunner();
 
   static Future<String> runCmd(String cmd,
