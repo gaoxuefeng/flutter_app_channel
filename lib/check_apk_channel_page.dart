@@ -123,13 +123,13 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
       String result2 = await CmdUtil.runCmd("java",
               args: ["-jar", vasDollyFile.path, "get", "-c", oriApkPath.path])
           .catchError((onError) {
-        channelInfo += "\nVadDolly渠道:获取错误";
+        channelInfo += "\nVasDolly渠道:获取错误";
       });
       if (result2.contains("Channel:")) {
         channelInfo +=
             "\nVadDolly渠道:${result2.substring(result2.lastIndexOf("Channel:"))}";
       } else {
-        channelInfo += "\nVadDolly渠道:未知";
+        channelInfo += "\nVasDolly渠道:未知";
       }
     }
 
