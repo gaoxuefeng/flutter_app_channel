@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_app_data/dart_app_data.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_channel/loading_custom.dart';
@@ -104,11 +105,10 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
     });
     if (myFile != null) {
       oriApkPath = myFile;
-      Directory apkRootFile = File(oriApkPath.path).parent;
       File walleFile = await FileUtil.copyAssetJarFile(
-          R.jar_walle_cli_all_jar, apkRootFile.path);
-      File vasDollyFile =
-          await FileUtil.copyAssetJarFile(R.jar_vasdolly_jar, apkRootFile.path);
+          R.jar_walle_cli_all_jar, FileUtil.getRootFile());
+      File vasDollyFile = await FileUtil.copyAssetJarFile(
+          R.jar_vasdolly_jar, FileUtil.getRootFile());
       String result = await CmdUtil.runCmd("java",
               args: ["-jar", walleFile.path, "show", oriApkPath.path])
           .catchError((onError) {
@@ -131,6 +131,7 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
       } else {
         channelInfo += "\nVasDolly渠道:未知";
       }
+      // channelInfo = "\n${myData?.path ?? "--"}";
     }
 
     setState(() {});

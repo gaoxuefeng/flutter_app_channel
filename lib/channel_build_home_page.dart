@@ -335,8 +335,9 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     setState(() {
       isRunning = true;
     });
+
     String packageName =
-        "渠道包${typeList?.safeElementAt(channelBuildType)}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
+        "渠道包_${oriApkPath.fileName.substring(0, oriApkPath.fileName.length - 4)}_${typeList?.safeElementAt(channelBuildType)}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
 
     appendLog("当前时间${packageName}");
     String outApkPath =
@@ -375,7 +376,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
 
   Future signVasDolly(String channelName, String outPutPath) async {
     File saveJarVasDolly = await FileUtil.copyAssetJarFile(
-        R.jar_vasdolly_jar, File(channelFile.path).parent.path);
+        R.jar_vasdolly_jar, FileUtil.getRootFile());
     await runCmd("java", args: [
       "-jar",
       "${saveJarVasDolly.path}",
@@ -391,8 +392,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
 
   Future signWalle(String channelName, String outPutPath) async {
     File saveJarWalle = await FileUtil.copyAssetJarFile(
-        R.jar_walle_cli_all_jar, File(channelFile.path).parent.path);
-    // File saveJarWalle = await copyAssetJarFile(R.jar_walle_cli_all_jar);
+        R.jar_walle_cli_all_jar, FileUtil.getRootFile());
 
     await runCmd("java", args: [
       "-jar",

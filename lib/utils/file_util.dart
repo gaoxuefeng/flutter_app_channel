@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_app_data/dart_app_data.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_channel/utils/cmd_Util.dart';
 
@@ -8,6 +9,10 @@ import 'package:flutter_app_channel/utils/cmd_Util.dart';
  * on 12/11/20
  */
 class FileUtil {
+  static String getRootFile() {
+    return AppData.findOrCreate('flutterAppChannel/').path;
+  }
+
   static Future<File> copyAssetJarFile(
       String jarAssetFile, String sourceRootFile) async {
     String rootFile = sourceRootFile;
