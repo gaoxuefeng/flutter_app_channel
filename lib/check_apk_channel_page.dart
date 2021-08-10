@@ -1,17 +1,14 @@
 import 'dart:io';
 
-import 'package:dart_app_data/dart_app_data.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app_channel/loading_custom.dart';
 import 'package:flutter_app_channel/r.dart';
 import 'package:flutter_app_channel/utils/cmd_Util.dart';
 import 'package:flutter_app_channel/utils/file_util.dart';
+import 'package:flutter_app_channel/utils/loading_dialog.dart';
 
-/**
- * Created by Gao Xuefeng
- * on 12/11/20
- */
+/// Created by Gao Xuefeng
+/// on 12/11/20
 class CheckApkChannelPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -20,8 +17,8 @@ class CheckApkChannelPage extends StatefulWidget {
 }
 
 class _CheckApkChannelPage extends State<CheckApkChannelPage> {
-  FilePickerCross oriApkPath;
-  String channelInfo;
+  FilePickerCross? oriApkPath;
+  String? channelInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -59,13 +56,9 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
               padding: const EdgeInsets.all(10.0),
               child: GestureDetector(
                 onTapDown: (_) async {
-                  await LoadingCustom.show(context);
-                  await selectApkFile().catchError((onError) async {
-                    print(onError);
-                    await LoadingCustom.hide();
+                  LoadingDialog.showLoading((cancelToken) async {
+                    await selectApkFile();
                   });
-                  print("消失loading");
-                  await LoadingCustom.hide();
                 },
                 child: Container(
                   width: 100,
@@ -103,35 +96,36 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
       // print("弹框隐藏1");
       // await LoadingCustom.hide();
     });
-    if (myFile != null) {
-      oriApkPath = myFile;
-      File walleFile = await FileUtil.copyAssetJarFile(
-          R.jar_walle_cli_all_jar, FileUtil.getRootFile());
-      File vasDollyFile = await FileUtil.copyAssetJarFile(
-          R.jar_vasdolly_jar, FileUtil.getRootFile());
-      String result = await CmdUtil.runCmd("java",
-              args: ["-jar", walleFile.path, "show", oriApkPath.path])
-          .catchError((onError) {
-        channelInfo = "\nWalle渠道:获取错误";
-      });
-      if (result?.contains("{channel=") == true) {
-        channelInfo =
-            "\nWalle渠道:${result?.substring(result.lastIndexOf("{channel=")) ?? "未知"}";
-      } else {
-        channelInfo = "\nWalle渠道:未知";
-      }
-      String result2 = await CmdUtil.runCmd("java",
-              args: ["-jar", vasDollyFile.path, "get", "-c", oriApkPath.path])
-          .catchError((onError) {
-        channelInfo += "\nVasDolly渠道:获取错误";
-      });
-      if (result2.contains("Channel:")) {
-        channelInfo +=
-            "\nVadDolly渠道:${result2.substring(result2.lastIndexOf("Channel:"))}";
-      } else {
-        channelInfo += "\nVasDolly渠道:未知";
-      }
-      // channelInfo = "\n${myData?.path ?? "--"}";
+    oriApkPath = myFile;
+    File walleFile = await FileUtil.copyAssetJarFile(
+        R.jar_walle_cli_all_jar, await FileUtil.getRootFile());
+    File vasDollyFile = await FileUtil.copyAssetJarFile(
+        R.jar_vasdolly_jar, await FileUtil.getRootFile());
+    String result = await CmdUtil.runCmd("java",
+            args: ["-jar", walleFile.path, "show", oriApkPath?.path ?? ""])
+        .catchError((onError) {
+      channelInfo = "\nWalle渠道:获取错误";
+    });
+    if (result.contains("{channel=") == true) {
+      channelInfo =
+          "\nWalle渠道:${result.substring(result.lastIndexOf("{channel="))}";
+    } else {
+      channelInfo = "\nWalle渠道:未知";
+    }
+    String result2 = await CmdUtil.runCmd("java", args: [
+      "-jar",
+      vasDollyFile.path,
+      "get",
+      "-c",
+      oriApkPath?.path ?? ""
+    ]).catchError((onError) {
+      channelInfo = (channelInfo ?? "") + "\nVasDolly渠道:获取错误";
+    });
+    if (result2.contains("Channel:")) {
+      channelInfo = (channelInfo ?? "") +
+          "\nVadDolly渠道:${result2.substring(result2.lastIndexOf("Channel:"))}";
+    } else {
+      channelInfo = (channelInfo ?? "") + "\nVasDolly渠道:未知";
     }
 
     setState(() {});

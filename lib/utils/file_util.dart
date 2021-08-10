@@ -1,16 +1,17 @@
 import 'dart:io';
 
-import 'package:dart_app_data/dart_app_data.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_channel/utils/cmd_Util.dart';
+import 'package:path_provider/path_provider.dart';
 
 /**
  * Created by Gao Xuefeng
  * on 12/11/20
  */
 class FileUtil {
-  static String getRootFile() {
-    return AppData.findOrCreate('flutterAppChannel/').path;
+  static Future<String> getRootFile() async {
+    return (await getTemporaryDirectory()).path;
+    // return AppData.findOrCreate('flutterAppChannel/').path;
   }
 
   static Future<File> copyAssetJarFile(
@@ -38,7 +39,7 @@ class FileUtil {
     return file;
   }
 
-  static Future<File> copyFile(String oriPath, String copyPath) async {
+  static Future<File?> copyFile(String oriPath, String copyPath) async {
     File oriFile = File(oriPath);
     if (oriFile.existsSync()) {
       File resultFile = await createFile(copyPath);

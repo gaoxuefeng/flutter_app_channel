@@ -18,16 +18,24 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.0.2
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.1
-  process_runner: ^3.1.1
+  intl: ^0.17.0
+  cupertino_icons: ^1.0.3
+  process_runner: ^4.0.1
   file_picker_cross: ^4.2.6
-  progress_dialog: ^1.2.4
-  dart_app_data: ^1.0.1
+  #  progress_dialog: ^1.2.4
+  #  dart_app_data: ^1.0.1
+  path_provider: ^2.0.2
+  #为了给loading加cancelToken
+  dio: ^4.0.0
+  get: ^4.3.6
+
+
+
 
 
 dev_dependencies:

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-/**
- * Created by Gao Xuefeng
- * on 2020/11/3
- */
+/// Created by Gao Xuefeng
+/// on 2020/11/3
 class AnimationRoute extends PageRouteBuilder {
   final Widget widget;
-  AnimEnum animEnum;
+  AnimEnum? animEnum;
   bool isDialog = false;
   bool canAutoCancel = true;
 
@@ -81,10 +79,10 @@ class AnimationRoute extends PageRouteBuilder {
 enum AnimEnum { leftInRightOut, bottomInAndOut }
 
 class CancelGestureDetector extends StatelessWidget {
-  bool canAutoCancel;
-  Widget child;
+  final bool canAutoCancel;
+  final Widget child;
 
-  CancelGestureDetector({this.child, this.canAutoCancel = true});
+  CancelGestureDetector({required this.child, this.canAutoCancel = true});
 
   @override
   Widget build(BuildContext context) {
