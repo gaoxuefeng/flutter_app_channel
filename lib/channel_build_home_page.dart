@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 /// on 12/3/20
 class ChannelBuildHomePage extends StatefulWidget {
   final String? title;
+  static const channelSplit = "[#＃，,]";
 
   ChannelBuildHomePage({Key? key, this.title}) : super(key: key);
 
@@ -83,18 +84,14 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
                             onTapDown: (_) {
-                              Navigator.of(context)
-                                  .push(AnimationRoute(CheckApkChannelPage()));
+                              Navigator.of(context).push(AnimationRoute(CheckApkChannelPage()));
                             },
                             child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  borderRadius: BorderRadius.circular(5)),
+                              decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(5)),
                               padding: EdgeInsets.all(8),
                               child: Text(
                                 "查看APK渠道",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 20),
+                                style: TextStyle(color: Colors.white, fontSize: 20),
                               ),
                             ),
                           ),
@@ -107,11 +104,9 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                           child: Container(
                             child: Text(
                               "当前打包方式:${typeList.elementAt(channelBuildType)}",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
+                              style: TextStyle(color: Colors.white, fontSize: 20),
                             ),
-                            padding: EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 10),
+                            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                             decoration: BoxDecoration(
                                 color: Colors.deepPurpleAccent.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(3)),
@@ -133,9 +128,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                             child: Container(
                               width: 100,
                               padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  borderRadius: BorderRadius.circular(3)),
+                              decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(3)),
                               child: Center(
                                 child: Text(
                                   "请选择APK文件:",
@@ -165,9 +158,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                             child: Container(
                               width: 100,
                               padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  borderRadius: BorderRadius.circular(3)),
+                              decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(3)),
                               child: Text(
                                 "选择渠道文件:",
                                 style: TextStyle(color: Colors.white),
@@ -185,10 +176,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                                 child: CustomScrollView(
                                   slivers: [
                                     SliverToBoxAdapter(
-                                      child: Text(channelFile
-                                              ?.toString()
-                                              .replaceAll("\n", "\t||\t") ??
-                                          "请选择渠道文件"),
+                                      child: Text(channelFile?.toString().replaceAll("\n", "\t||\t") ?? "请选择渠道文件"),
                                     )
                                   ],
                                 ))),
@@ -219,9 +207,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                                       width: 100,
                                       height: 60,
                                       decoration: BoxDecoration(
-                                          color: Colors.deepPurpleAccent,
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
+                                          color: Colors.deepPurpleAccent, borderRadius: BorderRadius.circular(10)),
                                       padding: EdgeInsets.all(10),
                                       child: Center(
                                         child: Text(
@@ -236,8 +222,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                                   onTap: () async {
                                     appendLog("开始打渠道包");
                                     await LoadingDialog.showLoading((_) async {
-                                      await Future.delayed(
-                                          Duration(seconds: 1));
+                                      await Future.delayed(Duration(seconds: 1));
                                       await runningChannelTask();
                                     });
                                   },
@@ -245,16 +230,13 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
                                     margin: EdgeInsets.all(20),
                                     width: 100,
                                     height: 60,
-                                    decoration: BoxDecoration(
-                                        color: Colors.blue,
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
+                                    decoration:
+                                        BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(10)),
                                     child: Center(
                                         child: Obx(
                                       () => Text(
                                         isRunning.value ? "正在执行" : "开始执行",
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 20),
+                                        style: TextStyle(color: Colors.white, fontSize: 20),
                                       ),
                                     )),
                                   ),
@@ -273,8 +255,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
 
   Future selectApkFile() async {
     clickTime = DateTime.now().toString();
-    FilePickerCross myFile = await FilePickerCross.importFromStorage(
-            type: FileTypeCross.any, fileExtension: 'apk')
+    FilePickerCross myFile = await FilePickerCross.importFromStorage(type: FileTypeCross.any, fileExtension: 'apk')
         .catchError((onError) async {
       // print("弹框隐藏1");
       // await LoadingCustom.hide();
@@ -284,8 +265,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
   }
 
   Future selectChannelFile() async {
-    FilePickerCross myFile = await FilePickerCross.importFromStorage(
-            type: FileTypeCross.any, fileExtension: "txt")
+    FilePickerCross myFile = await FilePickerCross.importFromStorage(type: FileTypeCross.any, fileExtension: "txt")
         .catchError((onError) async {
       appendLog(onError.toString());
     });
@@ -296,8 +276,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
 
   appendLog(String appendLog) {
     log.value = log.value + "\n$appendLog";
-    _scrollController.animateTo(0.0,
-        duration: Duration(seconds: 1), curve: Curves.easeOut);
+    _scrollController.animateTo(0.0, duration: Duration(seconds: 1), curve: Curves.easeOut);
   }
 
   Future runningChannelTask() async {
@@ -322,22 +301,20 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
           "渠道包_${oriName.substring(0, oriName.length - 4)}_${typeList.safeElementAt(channelBuildType)}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
 
       appendLog("当前时间$packageName");
-      String outApkPath =
-          "${File(oriApkPath?.path ?? "").parent.path + "/$packageName/"}";
+      String outApkPath = "${File(oriApkPath?.path ?? "").parent.path + "/$packageName/"}";
       int index = 0;
 
       for (String element in channelList!) {
         index++;
 
-        List<String> channelItemInfo = element.split("#");
+        List<String> channelItemInfo = element.split(RegExp(ChannelBuildHomePage.channelSplit));
         String channelName = (channelItemInfo.safeElementAt(0))?.trim() ?? "";
         if (channelName.isNotEmpty) {
           String outPutName = (channelItemInfo.safeElementAt(1))?.trim() ?? "";
           if (outPutName.isEmpty) {
             outPutName = channelName;
           }
-          String outPutPath =
-              outApkPath + oriName.substring(0, oriName.length - 4);
+          String outPutPath = outApkPath + oriName.substring(0, oriName.length - 4);
           outPutPath += "_${index}_$outPutName.apk";
           if (channelBuildType == 0) {
             await signWalle(channelName, outPutPath);
@@ -359,34 +336,18 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
   }
 
   Future signVasDolly(String channelName, String outPutPath) async {
-    File saveJarVasDolly = await FileUtil.copyAssetJarFile(
-        R.jar_vasdolly_jar, await FileUtil.getRootFile());
-    await runCmd("java", args: [
-      "-jar",
-      "${saveJarVasDolly.path}",
-      "put",
-      "-c",
-      "$channelName",
-      outPutPath,
-      outPutPath
-    ]).catchError((onError) {
+    File saveJarVasDolly = await FileUtil.copyAssetJarFile(R.jar_vasdolly_jar, await FileUtil.getRootFile());
+    await runCmd("java", args: ["-jar", "${saveJarVasDolly.path}", "put", "-c", "$channelName", outPutPath, outPutPath])
+        .catchError((onError) {
       File(outPutPath).deleteSync();
     });
   }
 
   Future signWalle(String channelName, String outPutPath) async {
-    File saveJarWalle = await FileUtil.copyAssetJarFile(
-        R.jar_walle_cli_all_jar, await FileUtil.getRootFile());
+    File saveJarWalle = await FileUtil.copyAssetJarFile(R.jar_walle_cli_all_jar, await FileUtil.getRootFile());
 
-    await runCmd("java", args: [
-      "-jar",
-      "${saveJarWalle.path}",
-      "put",
-      "-c",
-      "$channelName",
-      "${oriApkPath!.path!}",
-      outPutPath
-    ]);
+    await runCmd("java",
+        args: ["-jar", "${saveJarWalle.path}", "put", "-c", "$channelName", "${oriApkPath!.path!}", outPutPath]);
   }
 
   @override
@@ -399,7 +360,6 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
     await CmdUtil.runCmd(s, args: args, appendLog: (addLog) {
       appendLog(addLog);
     });
-    _scrollController.animateTo(0.0,
-        duration: Duration(seconds: 1), curve: Curves.easeOut);
+    _scrollController.animateTo(0.0, duration: Duration(seconds: 1), curve: Curves.easeOut);
   }
 }
