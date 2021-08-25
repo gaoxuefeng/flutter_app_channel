@@ -301,7 +301,7 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
           "渠道包_${oriName.substring(0, oriName.length - 4)}_${typeList.safeElementAt(channelBuildType)}${DateFormat("yyyy年M月d日HH点mm分ss秒").format(DateTime.now())}";
 
       appendLog("当前时间$packageName");
-      String outApkPath = "${File(oriApkPath?.path ?? "").parent.path + "/$packageName/"}";
+      String outApkPath = "${File(oriApkPath?.path ?? "").parent.path +Platform.pathSeparator+ "$packageName"}"+Platform.pathSeparator;
       int index = 0;
 
       for (String element in channelList!) {
@@ -329,7 +329,12 @@ class _ChannelBuildHomePageState extends State<ChannelBuildHomePage> {
       }
       appendLog("打包已完成");
       appendLog("APK输出路径为:$outApkPath");
-      await runCmd("open", args: ["$outApkPath"]);
+      if(Platform.isMacOS){
+        await runCmd("open", args: ["$outApkPath"]);
+
+      }else if(Platform.isWindows){
+        await runCmd("explorer", args: ["$outApkPath"]);
+      }
     }
 
     isRunning.value = false;
