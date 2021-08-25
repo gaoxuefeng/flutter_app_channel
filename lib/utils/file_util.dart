@@ -17,7 +17,7 @@ class FileUtil {
 
   static Future<File> copyAssetJarFile(String jarAssetFile, String sourceRootFile) async {
     String rootFile = sourceRootFile;
-    File saveFile = File(rootFile + "/$jarAssetFile");
+    File saveFile = File(rootFile + Platform.pathSeparator + jarAssetFile);
     if (!await saveFile.exists()) {
       ByteData data = await rootBundle.load(jarAssetFile);
       final buffer = data.buffer;
