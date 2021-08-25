@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_app_channel/utils/cmd_Util.dart';
-import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
 /**
@@ -30,19 +28,8 @@ class FileUtil {
   static Future<File> createFile(String path) async {
     File file = File(path);
     if (!file.existsSync()) {
-      if (!file.parent.existsSync()) {
-        if (GetPlatform.isMacOS) {
-          await CmdUtil.runCmd("mkdir", args: ["-p", file.parent.path]);
-          await CmdUtil.runCmd("touch", args: [file.path]);
-        } else if (GetPlatform.isWindows) {
-          //md create_file\test
-          await CmdUtil.runCmd("md", args: [file.parent.path]);
-          //创建文件
-          await CmdUtil.runCmd("type nul >", args: [file.path]);
-        } else {
-          throw Exception("Platform not support...");
-        }
-      }
+      print("创建文件:${path}");
+      file.createSync(recursive: true);
     }
     return file;
   }
