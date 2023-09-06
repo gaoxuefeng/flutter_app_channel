@@ -20,3 +20,8 @@ apks output file will open after add channel
 
 ![Image text](./images/image1.jpeg)
 ![Image text](./images/image2.jpeg)
+打包方法
+macos:
+flutter build macos
+window:
+flutter build window

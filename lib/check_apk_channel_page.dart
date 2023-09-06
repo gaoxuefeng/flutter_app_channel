@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:file_picker_cross/file_picker_cross.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_channel/r.dart';
 import 'package:flutter_app_channel/utils/cmd_Util.dart';
@@ -17,7 +17,7 @@ class CheckApkChannelPage extends StatefulWidget {
 }
 
 class _CheckApkChannelPage extends State<CheckApkChannelPage> {
-  FilePickerCross? oriApkPath;
+  FilePickerResult? oriApkPath;
   String? channelInfo;
 
   @override
@@ -46,7 +46,7 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
                   Expanded(
                       child: Center(
                           child: Text(
-                    "APK渠道验证",
+                    "APK渠道/签名验证",
                     style: TextStyle(fontSize: 20, color: Colors.white),
                   )))
                 ],
@@ -77,11 +77,15 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text("当前选择APK:${oriApkPath?.path ?? "请选择APK"}"),
+              child:
+                  Text("当前选择APK:${oriApkPath?.files.first.path ?? "请选择APK"}"),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text("当前APK渠道:${channelInfo ?? "渠道未知"}"),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                    child: Text("当前APK渠道:${channelInfo ?? "渠道未知"}")),
+              ),
             )
           ],
         ),
@@ -90,20 +94,19 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
   }
 
   Future selectApkFile() async {
-    FilePickerCross myFile = await FilePickerCross.importFromStorage(
-            type: FileTypeCross.any, fileExtension: 'apk')
-        .catchError((onError) async {
-      // print("弹框隐藏1");
-      // await LoadingCustom.hide();
-    });
+    FilePickerResult? myFile = await FilePicker.platform
+        .pickFiles(type: FileType.custom, allowedExtensions: ["apk"]);
     oriApkPath = myFile;
     File walleFile = await FileUtil.copyAssetJarFile(
         R.jar_walle_cli_all_jar, await FileUtil.getRootFile());
     File vasDollyFile = await FileUtil.copyAssetJarFile(
         R.jar_vasdolly_jar, await FileUtil.getRootFile());
-    String result = await CmdUtil.runCmd("java",
-            args: ["-jar", walleFile.path, "show", oriApkPath?.path ?? ""])
-        .catchError((onError) {
+    String result = await CmdUtil.runCmd("java", args: [
+      "-jar",
+      walleFile.path,
+      "show",
+      oriApkPath?.files.first.path ?? ""
+    ]).catchError((onError) {
       channelInfo = "\nWalle渠道:获取错误";
     });
     if (result.contains("{channel=") == true) {
@@ -117,7 +120,7 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
       vasDollyFile.path,
       "get",
       "-c",
-      oriApkPath?.path ?? ""
+      oriApkPath?.files.first.path ?? ""
     ]).catchError((onError) {
       channelInfo = (channelInfo ?? "") + "\nVasDolly渠道:获取错误";
     });
@@ -128,6 +131,20 @@ class _CheckApkChannelPage extends State<CheckApkChannelPage> {
       channelInfo = (channelInfo ?? "") + "\nVasDolly渠道:未知";
     }
 
+    // apksigner verify -v -print-certs
+    await FileUtil.copyAssetJarFile(
+        "jar/apksigner.jar", await FileUtil.getRootFile());
+    File apkSigner = await FileUtil.copyAssetJarFile(
+        R.command_apk_sign, await FileUtil.getRootFile());
+    String result3 = await CmdUtil.runCmd(apkSigner.path, args: [
+      "verify",
+      "-v",
+      "-print-certs",
+      oriApkPath?.files.first.path ?? ""
+    ]).catchError((onError) {
+      channelInfo = (channelInfo ?? "") + "\n签名信息:获取错误";
+    });
+    channelInfo = (channelInfo ?? "") + "\n签名信息:\n" + result3;
     setState(() {});
   }
 }

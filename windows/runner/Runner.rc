@@ -94,8 +94,8 @@ BEGIN
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flutter_app_channel" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2020 cn.com.xuefeng.flutter. All rights reserved." "\0"
-            VALUE "OriginalFilename", "flutter_app_channel.exe" "\0"
-            VALUE "ProductName", "flutter_app_channel" "\0"
+            VALUE "OriginalFilename", "APK渠道签名工具.exe" "\0"
+            VALUE "ProductName", "APK渠道签名工具" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

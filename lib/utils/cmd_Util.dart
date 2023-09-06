@@ -35,6 +35,13 @@ class CmdUtil {
       appendLog(result.output);
     }
     print("执行结束");
+    if (result.pid != null) {
+      killProcess(result.pid!);
+    }
     return result.output;
+  }
+
+  static bool killProcess(int pid) {
+    return _processRunner.processManager.killPid(pid);
   }
 }
