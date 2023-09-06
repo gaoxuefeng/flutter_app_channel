@@ -272,8 +272,8 @@ class _ApkSignPage extends State<ApkSignPage> {
       for (PlatformFile apkItem in apkFiles) {
         index++;
         var apkFile = new File(apkItem.path ?? "");
-        var saveFile =
-            new File(apkFile.parent.path + "/" + "signed_" + apkItem.name);
+        var saveFile = new File(
+            apkFile.parent.path + "/" + "${index}_signed_" + apkItem.name);
         signResultInfo += "开始签名第${index}:${apkFile.path}";
         String? result = await CmdUtil.runCmd(apkSigner.path, args: [
           "sign",
